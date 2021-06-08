@@ -1,13 +1,13 @@
 pragma solidity ^0.4.17;
 // linter warnings (red underline) about pragma version can igonored!
-contract SendMoney {
-    string public total;
+contract Inbox {
+    string public message;
     
-    constructor(string initialTotal) public {
-        total = initialTotal;
+    constructor(string initialMessage) public {
+        message = initialMessage;
     }
     
-    function stackSats(string satsTotal) public {
-        total = satsTotal;
+    function setMessage(string newMessage) public {
+        message = newMessage;
     }
 }
