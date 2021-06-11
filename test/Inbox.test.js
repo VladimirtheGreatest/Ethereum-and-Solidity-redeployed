@@ -26,6 +26,12 @@ describe('Inbox', () => {
         const message = await inbox.methods.message().call();
         assert.strictEqual(message, INITIAL_STRING);
     })
+    it('contract can change the message', async () =>{
+       await inbox.methods.setMessage('changed')
+       .send({from: accounts[0]});
+       const message = await inbox.methods.message().call();
+       assert.strictEqual(message, 'changed');
+    });
 });
 
 
