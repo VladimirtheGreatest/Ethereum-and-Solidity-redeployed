@@ -1,13 +1,15 @@
 pragma solidity ^0.4.17;
-// linter warnings (red underline) about pragma version can igonored!
-contract Inbox {
-    string public message;
+
+contract Lottery{
+    address public manager;
+    address[] public players;
     
-    constructor(string initialMessage) public {
-        message = initialMessage;
+    constructor() public {
+        manager = msg.sender;
     }
     
-    function setMessage(string newMessage) public {
-        message = newMessage;
+    function enter() public payable {
+        require(msg.value > .01 ether);
+        players.push(msg.sender);
     }
 }
