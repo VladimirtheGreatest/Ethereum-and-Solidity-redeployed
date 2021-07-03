@@ -17,7 +17,9 @@ contract Lottery{
     return uint(keccak256(abi.encodePacked(block.difficulty, players, now)));
     }
     function pickWinner() public {
+        require(msg.sender == manager); //only manager can pick the qinner
         uint index = random() % players.length;
         players[index].transfer(address(this).balance); 
+        players = new address[](0);   //reset the lottery
     }
 }
