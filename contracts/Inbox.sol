@@ -16,10 +16,18 @@ contract Lottery{
     function random() private view returns(uint) {
     return uint(keccak256(abi.encodePacked(block.difficulty, players, now)));
     }
-    function pickWinner() public {
-        require(msg.sender == manager); //only manager can pick the qinner
+    function pickWinner() public restricted {
+    //only manager can pick the qinner
         uint index = random() % players.length;
         players[index].transfer(address(this).balance); 
         players = new address[](0);   //reset the lottery
+    }
+     modifier restricted(){
+         require(msg.value > .01 ether);
+         _;
+    }
+
+    function getPlayers() public view returns (address[]) {
+        return players;
     }
 }
