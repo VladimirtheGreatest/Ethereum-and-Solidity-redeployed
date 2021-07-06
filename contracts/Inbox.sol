@@ -23,7 +23,7 @@ contract Lottery{
         players = new address[](0);   //reset the lottery
     }
      modifier restricted(){
-         require(msg.value > .01 ether);
+         require(msg.sender == manager);
          _;
     }
 
