@@ -11,6 +11,7 @@ contract Casino {
     uint256 public minimumContribution;
     address[] public players;
     uint256 public progressiveJackpot;
+    bool locked = false;
 
     //house cannot make deposits or play the game that would not be fair
     modifier restricted() {
@@ -48,24 +49,48 @@ contract Casino {
     }
 
     function play() public restricted returns (string memory response) {
-        if (checkDeposits(deposits, msg.sender)) {
-            if (checkBalance() < minimumContribution) {
-                revert("Please deposit first");
-            }
-            for (uint256 i = 0; i < deposits.length; i++) {
-                if (
-                    deposits[i].gambler == msg.sender &&
-                    deposits[i].value >= minimumContribution
-                ) {
-                    deposits[i].value -= minimumContribution; //if the player deposited before deduct the playing fee from his account
-                    //logic for winning and loosing here, also to hit the jackpot
-                    return "success";
-                }
-            }
-        } else {
-            //we have not found deposit so tell the player to deposit first
+        if (checkBalance() < minimumContribution) {
             revert("Please deposit first");
         }
+        for (uint256 i = 0; i < deposits.length; i++) {
+            if (
+                deposits[i].gambler == msg.sender &&
+                deposits[i].value >= minimumContribution
+            ) {
+                deposits[i].value -= minimumContribution; //if the player deposited before deduct the playing fee from his account
+                //logic for winning and loosing here, also to hit the jackpot
+                if (players.length > 10) {
+                    uint256 randomNumber = random() % players.length;
+                    if (randomNumber > 10) {
+                        //need to come up with a better logic
+                        pickWinner();
+                    }
+                }
+                return "success";
+            }
+        }
+    }
+
+    function random() private view returns (uint256) {
+        return
+            uint256(
+                keccak256(abi.encodePacked(block.difficulty, players, now))
+            );
+    }
+
+    function pickWinner() private {
+        uint256 index = random() % players.length;
+        require(!locked, "Reentrant call detected!"); //Use a Reentrancy Guard
+        locked = true;
+        bool successWinnerTransfer = players[index].call.value(
+            (address(this).balance / 100) * 90
+        )(""); //90% from progressive jackpot goes to the winner
+        require(successWinnerTransfer, "Transfer to the winner failed.");
+        bool successHouseTransfer = house.call.value(address(this).balance)(""); // 10% rake fee for the house
+        require(successHouseTransfer, "Transfer to house failed.");
+        players = new address[](0); //reset the lottery
+        progressiveJackpot = 0;
+        locked = false;
     }
 
     function checkBalance() public view restricted returns (uint256 balance) {
